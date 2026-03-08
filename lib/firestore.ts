@@ -10,9 +10,14 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Task, TaskPriority } from "@/lib/types";
+import type { Task, TaskPriority } from "@/lib/types";
 
-const tasksRef = collection(db, "tasks");
+function getTasksRef() {
+  if (!db) {
+    throw new Error("Firestore is not initialized.");
+  }
+  return collection(db, "tasks");
+}
 
 export async function createTask(data: {
   uid: string;
@@ -21,6 +26,7 @@ export async function createTask(data: {
   priority?: TaskPriority;
 }) {
   const now = Date.now();
+  const tasksRef = getTasksRef();
 
   const docRef = await addDoc(tasksRef, {
     uid: data.uid,
@@ -49,6 +55,7 @@ export async function createTask(data: {
 }
 
 export async function getUserTasks(uid: string): Promise<Task[]> {
+  const tasksRef = getTasksRef();
   const q = query(tasksRef, where("uid", "==", uid), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
 
@@ -59,6 +66,10 @@ export async function getUserTasks(uid: string): Promise<Task[]> {
 }
 
 export async function updateTask(taskId: string, updates: Partial<Task>) {
+  if (!db) {
+    throw new Error("Firestore is not initialized.");
+  }
+
   await updateDoc(doc(db, "tasks", taskId), {
     ...updates,
     updatedAt: Date.now(),
@@ -66,5 +77,9 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
 }
 
 export async function deleteTask(taskId: string) {
+  if (!db) {
+    throw new Error("Firestore is not initialized.");
+  }
+
   await deleteDoc(doc(db, "tasks", taskId));
 }

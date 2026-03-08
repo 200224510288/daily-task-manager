@@ -20,16 +20,21 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
-  async function handleLogin() {
-    setError("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/dashboard");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    }
+ async function handleLogin() {
+  if (!auth) {
+    setError("Authentication service not initialized.");
+    return;
   }
 
+  setError("");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    router.replace("/dashboard");
+  } catch (err: unknown) {
+    setError(err instanceof Error ? err.message : "Login failed");
+  }
+}
   return (
     <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-lg p-8">
